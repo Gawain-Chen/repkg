@@ -280,7 +280,13 @@ namespace RePKG.Command
 
             // convert and save
             if (_options.NoTexConvert || entry.Type != EntryType.Tex)
+            {
+                if (entry.Type != EntryType.Tex && _options.OnlySaveImages)
+                {
+                    File.Delete(filePath);
+                }
                 return;
+            }
 
             var tex = LoadTex(entry.Bytes, entry.FullPath);
 
@@ -290,6 +296,11 @@ namespace RePKG.Command
             try
             {
                 ConvertToImageAndSave(tex, filePathWithoutExtension, _options.Overwrite);
+                if (_options.OnlySaveImages)
+                {
+                    File.Delete(filePath);
+                    return;
+                }
                 var jsonInfo = _texJsonInfoGenerator.GenerateInfo(tex);
                 File.WriteAllText($"{filePathWithoutExtension}.tex-json", jsonInfo);
             }
@@ -409,6 +420,9 @@ namespace RePKG.Command
 
         [Option("overwrite", HelpText = "Overwrite all existing files")]
         public bool Overwrite { get; set; }
+
+        [Option("osi", HelpText = "Only save image files in output")]
+        public bool OnlySaveImages { get; set; }
 
         [Value(0, Required = true, HelpText = "Path to file/directory", MetaName = "Input")]
         public string Input { get; set; }
